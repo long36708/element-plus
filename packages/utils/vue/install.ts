@@ -41,6 +41,13 @@ export const withInstallDirective = <T extends Directive>(
   return directive as SFCWithInstall<T>
 }
 
+/**
+ * 用于创建 install 函数为空的组件
+ * 假设你正在开发一个 Vue 组件库，并且希望某些组件能够被全局注册，
+ * 但又不想为每个组件都编写具体的 install 方法。
+ * 你可以使用 withNoopInstall 来简化这个过程
+ * @param component
+ */
 export const withNoopInstall = <T>(component: T) => {
   ;(component as SFCWithInstall<T>).install = NOOP
 
