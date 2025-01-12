@@ -11,5 +11,9 @@ type CheckboxGroupContext = {
   >
 >
 
+/**
+ * 定义一个用于Checkbox组组件的上下文键
+ * 这个键用于在Checkbox组内部共享状态和方法
+ */
 export const checkboxGroupContextKey: InjectionKey<CheckboxGroupContext> =
   Symbol('checkboxGroupContextKey')

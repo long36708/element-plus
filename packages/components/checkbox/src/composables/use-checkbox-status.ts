@@ -8,6 +8,14 @@ import type { ComponentInternalInstance } from 'vue'
 import type { CheckboxProps } from '../checkbox'
 import type { CheckboxModel } from '../composables'
 
+/**
+ * 钩子函数，用于管理复选框组件的状态。
+ * 该钩子根据传入的属性、插槽和模型，计算实际值、选中状态、聚焦状态、大小以及是否有自己的标签。
+ * @param props 传递给复选框组件的属性，包含配置信息，如值和标签。
+ * @param slots 传递给复选框组件的插槽内容，用于确定是否存在默认标签。
+ * @param model 传递给复选框组件的模型，包含控制复选框选中状态的值。
+ * @returns 返回一个对象，包含复选框按钮大小、选中状态、聚焦状态、复选框大小、是否有自己的标签以及实际值。
+ */
 export const useCheckboxStatus = (
   props: CheckboxProps,
   slots: ComponentInternalInstance['slots'],
@@ -16,8 +24,8 @@ export const useCheckboxStatus = (
   const checkboxGroup = inject(checkboxGroupContextKey, undefined)
   const isFocused = ref(false)
   const actualValue = computed(() => {
-    // In version 2.x, if there's no props.value, props.label will act as props.value
-    // In version 3.x, remove this computed value, use props.value instead.
+    // 在版本 2.x 中，如果没有 props.value，则 props.label 将作为 props.value
+    // 在版本 3.x 中，移除此计算值，直接使用 props.value
     if (!isPropAbsent(props.value)) {
       return props.value
     }

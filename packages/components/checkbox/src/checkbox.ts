@@ -107,9 +107,23 @@ export const checkboxProps = {
   ...useAriaProps(['ariaControls']),
 }
 
+/**
+ * 定义复选框组件的事件发射对象，用于验证事件的值类型
+ */
 export const checkboxEmits = {
+  /**
+   * 更新模型事件，验证传入的值是否为字符串、数字或布尔类型
+   * @param val 复选框的值
+   * @returns 如果值是字符串、数字或布尔类型则返回true，否则返回false
+   */
   [UPDATE_MODEL_EVENT]: (val: CheckboxValueType) =>
     isString(val) || isNumber(val) || isBoolean(val),
+
+  /**
+   * 变更事件，验证传入的值是否为字符串、数字或布尔类型
+   * @param val 复选框的值
+   * @returns 如果值是字符串、数字或布尔类型则返回true，否则返回false
+   */
   change: (val: CheckboxValueType) =>
     isString(val) || isNumber(val) || isBoolean(val),
 }
