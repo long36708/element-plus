@@ -85,6 +85,7 @@ type useSelectType = (
   iconComponent: ComputedRef<string>
   iconReverse: ComputedRef<boolean>
   validateState: ComputedRef<string>
+  popupScroll: (data: { scrollTop: number; scrollLeft: number }) => void
 
   validateIcon: ComputedRef<unknown>
   showNewOption: ComputedRef<boolean>
@@ -707,7 +708,10 @@ export const useSelect: useSelectType = (props: ISelectProps, emit) => {
 
   const handleMenuEnter = () => {
     states.isBeforeHide = false
-    nextTick(() => scrollToOption(states.selected))
+    nextTick(() => {
+      scrollbarRef.value?.update()
+      scrollToOption(states.selected)
+    })
   }
 
   const focus = () => {
@@ -850,6 +854,10 @@ export const useSelect: useSelectType = (props: ISelectProps, emit) => {
     return { maxWidth: `${states.selectionWidth}px` }
   })
 
+  const popupScroll = (data: { scrollTop: number; scrollLeft: number }) => {
+    emit('popup-scroll', data)
+  }
+
   useResizeObserver(selectionRef, resetSelectionWidth)
   useResizeObserver(menuRef, updateTooltip)
   useResizeObserver(wrapperRef, updateTooltip)
@@ -915,6 +923,7 @@ export const useSelect: useSelectType = (props: ISelectProps, emit) => {
     dropdownMenuVisible,
     showTagList,
     collapseTagList,
+    popupScroll,
 
     // computed style
     tagStyle,
