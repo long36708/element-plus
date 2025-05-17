@@ -244,32 +244,72 @@ export function useTree(
     }
   }
 
+  /**
+   * 根据给定的节点键列表 keys，向上追溯每个节点的所有祖先节点，
+   * 并将这些节点加入到一个表示展开节点的集合中（expandedKeySet）
+   * 具体逻辑如下：
+   * 创建一个空的 Set 来保存最终需要展开的节点键。
+   * 遍历传入的每个节点键 k：
+   * 从树结构中获取对应的节点；
+   * 向上遍历其所有祖先节点，直到根节点或已添加过的节点；
+   * 每个未添加过的节点键都加入 expandedKeys 集合中。
+   * 最后将结果赋值给响应式数据 expandedKeySet.value。
+   * @param keys
+   */
   function setExpandedKeys(keys: TreeKey[]) {
+    // 创建一个新的Set来存储即将展开的树节点键，避免重复和确保查找效率
     const expandedKeys = new Set<TreeKey>()
+    // 获取树组件中所有节点的映射，以便快速访问
     const nodeMap = tree.value!.treeNodeMap
 
+    // 遍历每个要展开的键
     keys.forEach((k) => {
+      // 尝试从节点映射中获取当前键对应的节点
       let node = nodeMap.get(k)
+      // 当节点存在且节点的键尚未被添加到展开的键集合中时，继续循环
       while (node && !expandedKeys.has(node.key)) {
+        // 将当前节点的键添加到展开的键集合中
         expandedKeys.add(node.key)
+        // 移动到父节点，以检查是否需要展开父节点
         node = node.parent
       }
     })
 
+    // 更新全局的展开键集合，以反映新的展开状态
     expandedKeySet.value = expandedKeys
   }
 
+  /**
+   * 处理节点点击事件
+   * 功能如下：
+   * 触发点击事件：通过 emit 触发 NODE_CLICK 事件，传递节点数据和事件对象；
+   * 更新当前节点：调用 handleCurrentChange 更新当前选中节点；
+   * 展开/收起节点：若配置为点击展开，则调用 toggleExpand；
+   * 勾选节点：若启用复选框、且满足点击勾选条件、且节点未禁用，则调用 toggleCheckbox 切换选中状态。
+   * @param node 被点击的树节点
+   * @param e 鼠标事件对象
+   */
   function handleNodeClick(node: TreeNode, e: MouseEvent) {
+    // 触发节点点击事件，传递节点数据和原始事件对象
     emit(NODE_CLICK, node.data, node, e)
+
+    // 更新当前选中的节点
     handleCurrentChange(node)
+
+    // 如果配置了点击节点时展开或折叠节点
     if (props.expandOnClickNode) {
+      // 切换节点的展开状态
       toggleExpand(node)
     }
+
+    // 如果显示复选框，并且配置了点击节点时切换复选状态，
+    // 或者是叶子节点且配置了点击叶子节点时切换复选状态，且节点未禁用
     if (
       props.showCheckbox &&
       (props.checkOnClickNode || (node.isLeaf && props.checkOnClickLeaf)) &&
       !node.disabled
     ) {
+      // 切换节点的复选状态
       toggleCheckbox(node, !isChecked(node), true)
     }
   }
@@ -362,6 +402,14 @@ export function useTree(
     currentKey.value = key
   }
 
+  /**
+   * 设置树形数据
+   *
+   * 该函数接受一个树形数据对象作为参数，并使用这些数据创建一个新的树形结构，
+   * 然后将这个新的树形结构赋值给全局变量tree，以更新界面上显示的树形结构
+   *
+   * @param data - 树形数据对象，用于构建新的树形结构
+   */
   function setData(data: TreeData) {
     tree.value = createTree(data)
   }

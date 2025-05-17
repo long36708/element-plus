@@ -113,6 +113,13 @@ const handleCheckChange = (value: CheckboxValueType) => {
   emit('check', props.node, value)
 }
 
+/**
+ * 处理树形节点的右键菜单事件
+ * 逻辑如下：
+ * 如果节点绑定了 onNodeContextmenu 事件，则阻止事件冒泡和默认右键菜单；
+ * 然后通过 emit 触发自定义的 NODE_CONTEXTMENU 事件，并传递事件对象、节点数据和节点本身作为参数。
+ * @param event
+ */
 const handleContextMenu = (event: Event) => {
   if (tree?.instance?.vnode?.props?.['onNodeContextmenu']) {
     event.stopPropagation()
