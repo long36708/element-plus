@@ -1,6 +1,7 @@
 import { computed, getCurrentInstance, inject, nextTick, watch } from 'vue'
 import { useFormItem } from '@element-plus/components/form'
 import { debugWarn } from '@element-plus/utils'
+import { CHANGE_EVENT } from '@element-plus/constants'
 import { checkboxGroupContextKey } from '../constants'
 import type { useFormItemInputId } from '@element-plus/components/form'
 import type { CheckboxProps } from '../checkbox'
@@ -64,7 +65,7 @@ export const useCheckboxEvent = (
     checked: string | number | boolean,
     e: InputEvent | MouseEvent
   ) {
-    emit('change', getLabeledValue(checked), e)
+    emit(CHANGE_EVENT, getLabeledValue(checked), e)
   }
 
   /**
@@ -76,7 +77,7 @@ export const useCheckboxEvent = (
     if (isLimitExceeded.value) return
 
     const target = e.target as HTMLInputElement
-    emit('change', getLabeledValue(target.checked), e)
+    emit(CHANGE_EVENT, getLabeledValue(target.checked), e)
   }
 
   /**

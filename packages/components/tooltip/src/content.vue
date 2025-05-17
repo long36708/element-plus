@@ -21,6 +21,7 @@
         :offset="offset"
         :placement="placement"
         :popper-options="popperOptions"
+        :arrow-offset="arrowOffset"
         :strategy="strategy"
         :effect="effect"
         :enterable="enterable"
@@ -44,7 +45,7 @@
 
 <script lang="ts" setup>
 import { computed, inject, onBeforeUnmount, ref, unref, watch } from 'vue'
-import { onClickOutside } from '@vueuse/core'
+import { computedEager, onClickOutside } from '@vueuse/core'
 import { useNamespace, usePopperContainerId } from '@element-plus/hooks'
 import { composeEventHandlers } from '@element-plus/utils'
 import { ElPopperContent } from '@element-plus/components/popper'
@@ -65,6 +66,7 @@ const { selector } = usePopperContainerId()
 const ns = useNamespace('tooltip')
 
 const contentRef = ref<PopperContentInstance>()
+const popperContentRef = computedEager(() => contentRef.value?.popperContentRef)
 let stopHandle: ReturnType<typeof onClickOutside>
 const {
   controlled,
@@ -143,18 +145,6 @@ const onBeforeLeave = () => {
 
 const onAfterShow = () => {
   onShow()
-  stopHandle = onClickOutside(
-    computed(() => {
-      return contentRef.value?.popperContentRef
-    }),
-    () => {
-      if (unref(controlled)) return
-      const $trigger = unref(trigger)
-      if ($trigger !== 'hover') {
-        onClose()
-      }
-    }
-  )
 }
 
 const onBlur = () => {
@@ -178,6 +168,13 @@ watch(
       stopHandle?.()
     } else {
       ariaHidden.value = false
+      stopHandle = onClickOutside(popperContentRef, () => {
+        if (unref(controlled)) return
+        const $trigger = unref(trigger)
+        if ($trigger !== 'hover') {
+          onClose()
+        }
+      })
     }
   },
   {

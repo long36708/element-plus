@@ -18,67 +18,52 @@ export const useDraggable = (
   overflow?: ComputedRef<boolean>
 ) => {
   // 当前目标元素的位置偏移量
-  let transform = {
+  const transform = {
     offsetX: 0,
     offsetY: 0,
   }
 
-  /**
-   * 鼠标按下事件处理函数
-   * 记录鼠标按下的位置，并计算目标元素可拖动的范围
-   *
-   * @param e 鼠标事件对象
-   */
-  const onMousedown = (e: MouseEvent) => {
-    const downX = e.clientX
-    const downY = e.clientY
-    const { offsetX, offsetY } = transform
+  const adjustPosition = (moveX: number, moveY: number) => {
+    if (targetRef.value) {
+      const { offsetX, offsetY } = transform
+      const targetRect = targetRef.value.getBoundingClientRect()
+      const targetLeft = targetRect.left
+      const targetTop = targetRect.top
+      const targetWidth = targetRect.width
+      const targetHeight = targetRect.height
 
-    // 获取目标元素的矩形信息
-    const targetRect = targetRef.value!.getBoundingClientRect()
-    const targetLeft = targetRect.left
-    const targetTop = targetRect.top
-    const targetWidth = targetRect.width
-    const targetHeight = targetRect.height
+      const clientWidth = document.documentElement.clientWidth
+      const clientHeight = document.documentElement.clientHeight
 
-    // 获取当前视口的宽度和高度
-    const clientWidth = document.documentElement.clientWidth
-    const clientHeight = document.documentElement.clientHeight
+      const minLeft = -targetLeft + offsetX
+      const minTop = -targetTop + offsetY
+      const maxLeft = clientWidth - targetLeft - targetWidth + offsetX
+      const maxTop = clientHeight - targetTop - targetHeight + offsetY
 
-    // 计算目标元素拖动的最小和最大位置
-    const minLeft = -targetLeft + offsetX
-    const minTop = -targetTop + offsetY
-    const maxLeft = clientWidth - targetLeft - targetWidth + offsetX
-    const maxTop = clientHeight - targetTop - targetHeight + offsetY
-
-    /**
-     * 鼠标移动事件处理函数
-     * 根据鼠标移动的距离计算新的偏移量，并更新目标元素的位置
-     *
-     * @param e 鼠标事件对象
-     */
-    const onMousemove = (e: MouseEvent) => {
-      let moveX = offsetX + e.clientX - downX
-      let moveY = offsetY + e.clientY - downY
-
-      // 如果不允许超出边界，则限制偏移量在可拖动范围内
       if (!overflow?.value) {
         moveX = Math.min(Math.max(moveX, minLeft), maxLeft)
         moveY = Math.min(Math.max(moveY, minTop), maxTop)
       }
 
-      // 更新偏移量
-      transform = {
-        offsetX: moveX,
-        offsetY: moveY,
-      }
+      transform.offsetX = moveX
+      transform.offsetY = moveY
 
-      // 更新目标元素的位置
-      if (targetRef.value) {
-        targetRef.value.style.transform = `translate(${addUnit(
-          moveX
-        )}, ${addUnit(moveY)})`
-      }
+      targetRef.value.style.transform = `translate(${addUnit(moveX)}, ${addUnit(
+        moveY
+      )})`
+    }
+  }
+
+  const onMousedown = (e: MouseEvent) => {
+    const downX = e.clientX
+    const downY = e.clientY
+    const { offsetX, offsetY } = transform
+
+    const onMousemove = (e: MouseEvent) => {
+      const moveX = offsetX + e.clientX - downX
+      const moveY = offsetY + e.clientY - downY
+
+      adjustPosition(moveX, moveY)
     }
 
     /**
@@ -102,6 +87,7 @@ export const useDraggable = (
   const onDraggable = () => {
     if (dragRef.value && targetRef.value) {
       dragRef.value.addEventListener('mousedown', onMousedown)
+      window.addEventListener('resize', updatePosition)
     }
   }
 
@@ -112,6 +98,7 @@ export const useDraggable = (
   const offDraggable = () => {
     if (dragRef.value && targetRef.value) {
       dragRef.value.removeEventListener('mousedown', onMousedown)
+      window.removeEventListener('resize', updatePosition)
     }
   }
 
@@ -120,13 +107,18 @@ export const useDraggable = (
    * 将偏移量重置为0，并更新目标元素的样式
    */
   const resetPosition = () => {
-    transform = {
-      offsetX: 0,
-      offsetY: 0,
-    }
+    transform.offsetX = 0
+    transform.offsetY = 0
+
     if (targetRef.value) {
-      targetRef.value.style.transform = 'none'
+      targetRef.value.style.transform = ''
     }
+  }
+
+  const updatePosition = () => {
+    const { offsetX, offsetY } = transform
+
+    adjustPosition(offsetX, offsetY)
   }
 
   // 在组件挂载时，根据draggable的值启用或禁用拖动功能
@@ -148,5 +140,6 @@ export const useDraggable = (
   // 返回重置位置的函数，以便外部调用
   return {
     resetPosition,
+    updatePosition,
   }
 }

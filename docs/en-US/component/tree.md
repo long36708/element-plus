@@ -27,6 +27,11 @@ tree/selectable
 
 :::
 
+:::warning
+When using show-checkbox, since `check-on-click-leaf` is true by default,
+last tree children's can be checked by clicking their nodes.
+:::
+
 ## Custom leaf node in lazy mode
 
 :::demo A node's data is not fetched until it is clicked, so the Tree cannot predict whether a node is a leaf node. That's why a drop-down button is added to each node, and if it is a leaf node, the drop-down button will disappear when clicked. That being said, you can also tell the Tree in advance whether the node is a leaf node, avoiding the render of the drop-down button before a leaf node.
@@ -121,9 +126,7 @@ tree/draggable
 
 :::
 
-## API
-
-### Attributes
+## Attributes
 
 | Name                         | Description                                                                                                                                                                                                                                                                                                                                                                 | Type                                                   | Default |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------- |
@@ -154,7 +157,7 @@ tree/draggable
 | allow-drag                   | this function will be executed before dragging a node. If `false` is returned, the node can not be dragged                                                                                                                                                                                                                                                                  | ^[Function]`(node) => boolean`                         | —       |
 | allow-drop                   | this function will be executed before the dragging node is dropped. If `false` is returned, the dragging node can not be dropped at the target node. `type` has three possible values: 'prev' (inserting the dragging node before the target node), 'inner' (inserting the dragging node to the target node) and 'next' (inserting the dragging node after the target node) | ^[Function]`(draggingNode, dropNode, type) => boolean` | —       |
 
-### props
+## props
 
 | Attribute | Description                                                                   | Type                                             | Default |
 | --------- | ----------------------------------------------------------------------------- | ------------------------------------------------ | ------- |
@@ -164,7 +167,7 @@ tree/draggable
 | isLeaf    | specify whether the node is a leaf node, only works when lazy load is enabled | ^[string] / ^[Function]`(data, node) => boolean` | —       |
 | class     | custom node class name                                                        | ^[string] / ^[Function]`(data, node) => string`  | —       |
 
-### Method
+## Method
 
 `Tree` has the following method, which returns the currently selected array of nodes.
 | Method | Description | Parameters |
@@ -188,7 +191,7 @@ tree/draggable
 | insertBefore | insert a node before a given node in the tree | (data, refNode) 1. node's data to be inserted 2. reference node's data, key or node |
 | insertAfter | insert a node after a given node in the tree | (data, refNode) 1. node's data to be inserted 2. reference node's data, key or node |
 
-### Events
+## Events
 
 | Name             | Description                                               | Parameters                                                                                                                                                                                       |
 | ---------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -206,7 +209,7 @@ tree/draggable
 | node-drag-end    | triggers when dragging ends                               | four parameters: node object corresponding to the dragging node, node object corresponding to the dragging end node (may be `undefined`), node drop type (before / after / inner), event.        |
 | node-drop        | triggers after the dragging node is dropped               | four parameters: node object corresponding to the dragging node, node object corresponding to the dropped node, node drop type (before / after / inner), event.                                  |
 
-### Slots
+## Slots
 
 | Name           | Description                                                            |
 | -------------- | ---------------------------------------------------------------------- |
