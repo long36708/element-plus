@@ -41,8 +41,16 @@ peerDependencyRules:
     - react
     - react-dom
 
+# 强制将依赖提升到 node_modules 根目录
+# 注意：这破坏了 pnpm 的严格依赖隔离机制，可能引起依赖冲突
+# 仅用于兼容某些期望依赖在根目录的工具
 shamefullyHoist: true
 
+# 使用 pnpm 的 shell 模拟器而非系统 shell
+# 用于跨平台兼容性，确保脚本在不同操作系统上都能正确执行
 shellEmulator: true
 
+# 禁用严格的 peer dependencies 检查
+# 允许安装不符合 peer dependencies 规范的依赖包
+# 注意：可能导致运行时依赖冲突，仅用于开发调试或兼容性处理
 strictPeerDependencies: false

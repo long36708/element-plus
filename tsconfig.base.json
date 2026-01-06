@@ -27,6 +27,9 @@
       "@element-plus/locale/*": ["packages/locale/*"],
       "element-plus": ["packages/element-plus"]
     },
+    // 保留符号链接而不进行解析
+    // 在 pnpm monorepo 环境中，依赖包可能通过符号链接链接
+    // 保留符号链接可以确保 TypeScript 正确解析依赖关系，避免路径解析错误
     "preserveSymlinks": true
   }
 }
