@@ -4,8 +4,9 @@ import {
   NODE_CHECK_CHANGE,
   SetOperationEnum,
 } from '../virtual-tree'
-import type { Ref } from 'vue'
+
 import type { CheckboxValueType } from '@element-plus/components/checkbox'
+import type { Ref } from 'vue'
 import type { Tree, TreeKey, TreeNode, TreeNodeData, TreeProps } from '../types'
 
 export function useCheck(props: TreeProps, tree: Ref<Tree | undefined>) {
@@ -75,13 +76,14 @@ export function useCheck(props: TreeProps, tree: Ref<Tree | undefined>) {
     // It is easier to determine the indeterminate state by
     // traversing from bottom to top
     // leaf nodes not have indeterminate status and can be skipped
-    for (let level = maxLevel - 1; level >= 1; --level) {
-      // 获取当前层级的所有节点
+    for (let level = maxLevel; level >= 1; --level) {
       const nodes = levelTreeNodeMap.get(level)
       if (!nodes) continue
       nodes.forEach((node) => {
         // 获取当前节点的子节点
         const children = node.children
+        let isEffectivelyChecked =
+          !node.isLeaf || node.disabled || checkedKeySet.has(node.key)
         if (children) {
           // 判断是否所有子节点都被选中
           // Whether all child nodes are selected
@@ -93,7 +95,9 @@ export function useCheck(props: TreeProps, tree: Ref<Tree | undefined>) {
 
           for (const childNode of children) {
             const key = childNode.key
-            // 如果子节点已被选中，则标记 hasChecked 为 true
+            if (!childNode.isEffectivelyChecked) {
+              isEffectivelyChecked = false
+            }
             if (checkedKeySet.has(key)) {
               hasChecked = true
               // 如果子节点处于半选状态，则标记 allChecked 为 false，hasChecked 为 true，并跳出循环
@@ -119,6 +123,7 @@ export function useCheck(props: TreeProps, tree: Ref<Tree | undefined>) {
             indeterminateKeySet.delete(node.key)
           }
         }
+        node.isEffectivelyChecked = isEffectivelyChecked
       })
     }
     // 将计算出的半选节点集合赋值给 indeterminateKeys
@@ -150,6 +155,11 @@ export function useCheck(props: TreeProps, tree: Ref<Tree | undefined>) {
   ) => {
     // 获取当前选中的键集合
     const checkedKeySet = checkedKeys.value
+    const children = node.children
+    if (!props.checkStrictly && nodeClick && children?.length) {
+      isChecked = children.some((node) => !node.isEffectivelyChecked)
+    }
+
 
     // 定义一个内部函数用于递归地更新节点的选中状态
     const toggle = (node: TreeNode, checked: CheckboxValueType) => {
@@ -163,6 +173,7 @@ export function useCheck(props: TreeProps, tree: Ref<Tree | undefined>) {
       // 如果不启用严格检查，并且当前节点有子节点，则递归更新子节点的选中状态
       if (!props.checkStrictly && children) {
         children.forEach((childNode) => {
+          if (!childNode.disabled || childNode.children) {
           // 如果子节点不禁用，则更新其选中状态
           if (!childNode.disabled) {
             toggle(childNode, checked)

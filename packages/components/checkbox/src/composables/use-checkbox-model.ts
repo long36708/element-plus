@@ -29,7 +29,7 @@ export const useCheckboxModel = (props: CheckboxProps) => {
       // 如果属于复选框组，获取组的模型值，否则获取当前复选框的模型值或默认值
       return isGroup.value
         ? checkboxGroup?.modelValue?.value
-        : props.modelValue ?? selfModel.value
+        : (props.modelValue ?? selfModel.value)
     },
 
     set(val: unknown) {

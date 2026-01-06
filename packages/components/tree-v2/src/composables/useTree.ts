@@ -10,6 +10,7 @@ import {
 } from '../virtual-tree'
 import { useCheck } from './useCheck'
 import { useFilter } from './useFilter'
+
 import type {
   FixedSizeList,
   Alignment as ScrollStrategy,
@@ -30,7 +31,7 @@ export function useTree(
   props: TreeProps,
   emit: SetupContext<typeof treeEmits>['emit']
 ) {
-  const expandedKeySet = ref<Set<TreeKey>>(new Set(props.defaultExpandedKeys))
+  const expandedKeySet = ref<Set<TreeKey>>(new Set())
   const currentKey = ref<TreeKey | undefined>()
   const tree = shallowRef<Tree | undefined>()
   // 固定大小的列表的 ref
@@ -172,6 +173,7 @@ export function useTree(
         // 设置节点是否禁用
         node.disabled = getDisabled(rawNode)
         node.isLeaf = !children || children.length === 0
+        node.expanded = expandedKeySet.value.has(value)
         // 根据子节点情况设置是否是叶子节点
         if (children && children.length) {
           node.children = traverse(children, level + 1, node)
@@ -262,7 +264,12 @@ export function useTree(
     // 获取树组件中所有节点的映射，以便快速访问
     const nodeMap = tree.value!.treeNodeMap
 
-    // 遍历每个要展开的键
+    expandedKeySet.value.forEach((key) => {
+      const node = nodeMap.get(key)!
+      expandedKeySet.value.delete(node.key)
+      node.expanded = false
+    })
+
     keys.forEach((k) => {
       // 尝试从节点映射中获取当前键对应的节点
       let node = nodeMap.get(k)
@@ -270,6 +277,7 @@ export function useTree(
       while (node && !expandedKeys.has(node.key)) {
         // 将当前节点的键添加到展开的键集合中
         expandedKeys.add(node.key)
+        node.expanded = true
         // 移动到父节点，以检查是否需要展开父节点
         node = node.parent
       }
@@ -350,11 +358,17 @@ export function useTree(
         // 如果发现同层级已有其他节点被展开，则将其从展开集合中移除
         if (node && node.level === treeNode?.level) {
           keySet.delete(key)
+          treeNode.expanded = false
         }
       })
     }
     // 将当前节点加入已展开节点集合
     keySet.add(node.key)
+    const _node = getNode(node.key)
+    if (_node) {
+      _node.expanded = true
+      emit(NODE_EXPAND, _node.data, _node)
+    }
     // 触发 NODE_EXPAND 事件，传递节点数据和节点对象
     emit(NODE_EXPAND, node.data, node)
   }
@@ -365,11 +379,11 @@ export function useTree(
    */
   function collapseNode(node: TreeNode) {
     expandedKeySet.value.delete(node.key)
-    emit(NODE_COLLAPSE, node.data, node)
-  }
-
-  function isExpanded(node: TreeNode): boolean {
-    return expandedKeySet.value.has(node.key)
+    const _node = getNode(node.key)
+    if (_node) {
+      _node.expanded = false
+      emit(NODE_COLLAPSE, _node.data, _node)
+    }
   }
 
   /**
@@ -441,6 +455,16 @@ export function useTree(
   )
 
   watch(
+    () => props.defaultExpandedKeys,
+    (key) => {
+      expandedKeySet.value = new Set<TreeKey>(key)
+    },
+    {
+      immediate: true,
+    }
+  )
+
+  watch(
     () => props.data,
     (data: TreeData) => {
       setData(data)
@@ -459,7 +483,6 @@ export function useTree(
     getChildren,
     toggleExpand,
     toggleCheckbox,
-    isExpanded,
     isChecked,
     isIndeterminate,
     isDisabled,

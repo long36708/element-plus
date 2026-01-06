@@ -1,5 +1,5 @@
 import { computed, inject } from 'vue'
-import { useFormDisabled } from '@element-plus/components/form'
+import { formContextKey, useFormDisabled } from '@element-plus/components/form'
 import { isUndefined } from '@element-plus/utils'
 import { checkboxGroupContextKey } from '../constants'
 
@@ -19,6 +19,7 @@ export const useCheckboxDisabled = ({
 }: Pick<CheckboxModel, 'model'> & Pick<CheckboxStatus, 'isChecked'>) => {
   // 尝试获取复选框分组上下文，如果不存在则默认为undefined
   const checkboxGroup = inject(checkboxGroupContextKey, undefined)
+  const formContext = inject(formContextKey, undefined)
 
   // 计算是否因为达到最大/最小选择限制而禁用复选框
   const isLimitDisabled = computed(() => {
@@ -34,7 +35,14 @@ export const useCheckboxDisabled = ({
 
   // 根据复选框分组的禁用状态或限制条件禁用状态，计算最终的禁用状态
   const isDisabled = useFormDisabled(
-    computed(() => checkboxGroup?.disabled.value || isLimitDisabled.value)
+    computed(() => {
+      // Directly use the checkbox
+      if (checkboxGroup === undefined) {
+        return formContext?.disabled ?? isLimitDisabled.value
+      } else {
+        return checkboxGroup.disabled?.value || isLimitDisabled.value
+      }
+    })
   )
 
   // 返回计算出的禁用状态和限制条件禁用状态

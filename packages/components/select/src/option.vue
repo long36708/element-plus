@@ -8,6 +8,7 @@
     :aria-selected="itemSelected"
     @mousemove="hoverItem"
     @click.stop="selectOptionClick"
+    @mousedown.prevent
   >
     <slot>
       <span>{{ currentLabel }}</span>
@@ -30,7 +31,11 @@ import { useId, useNamespace } from '@element-plus/hooks'
 import { useOption } from './useOption'
 import { COMPONENT_NAME, optionProps } from './option'
 
-import type { OptionExposed, OptionInternalInstance, OptionStates } from './type'
+import type {
+  OptionExposed,
+  OptionInternalInstance,
+  OptionStates,
+} from './type'
 
 export default defineComponent({
   name: COMPONENT_NAME,
@@ -73,12 +78,13 @@ export default defineComponent({
 
     onBeforeUnmount(() => {
       const key = vm.value
-      const { selected: selectedOptions } = select.states
-      const doesSelected = selectedOptions.some((item) => {
-        return item.value === vm.value
-      })
+
       // if option is not selected, remove it from cache
       nextTick(() => {
+        const { selected: selectedOptions } = select.states
+        const doesSelected = selectedOptions.some((item) => {
+          return item.value === vm.value
+        })
         if (select.states.cachedOptions.get(key) === vm && !doesSelected) {
           select.states.cachedOptions.delete(key)
         }
